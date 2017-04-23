@@ -18,6 +18,30 @@
   tags:
     - common
 
+- name: preserve hostname
+  sudo: yes
+  copy:
+    src: 02_hostname.cfg
+    dest: /etc/cloud/cloud.cfg.d/02_hostname.cfg
+    owner: root
+    group: root
+    mode: 0644
+  when: provider in cloud_init_providers
+  tags:
+    - common
+
+- name: set persistent hostname
+  sudo: yes
+  copy:
+    dest: /etc/hostname
+    content: "{{ inventory_hostname }}"
+    force: yes
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - common
+
 # add yum-utils if not already installed
 - name: add yum-config-manager
   sudo: yes
@@ -43,15 +67,6 @@
   tags:
     - bootstrap
 
-- name: enable yum repos
-  sudo: yes
-  copy:
-    src: "{{ item }}"
-    dest: "/etc/yum.repos.d/{{ item }}"
-  with_items:
-    - asteris-mantl-rpm.repo
-    - ciscocloud-rpm.repo
-
 - name: install system utilities
   sudo: yes
   yum:
@@ -62,11 +77,17 @@
     - nc
     - openssh
     - policycoreutils-python
+    - libselinux-python
     - unzip
     - jq
     - java-1.8.0-openjdk
     - chrony
     - smlr
+    - zookeepercli
+    - python2-pip
+    - python-pip
+    - bind-utils
+    - nano
   tags:
     - bootstrap
 
@@ -85,12 +106,6 @@
     state: stopped
   register: command_result
   failed_when: "command_result|failed and 'No such file or directory' not in command_result.msg"
-
-- name: install pip
-  sudo: yes
-  yum:
-    name: python-pip
-    state: latest
 
 - name: update setuptools and pip
   sudo: yes
@@ -118,7 +133,5 @@
     - security
     - bootstrap
 
-- include: users.yml
-- include: ssl.yml
 - include: ssh.yml
 - include: fail2ban.yml

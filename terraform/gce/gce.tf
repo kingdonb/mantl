@@ -10,13 +10,13 @@ variable "edge_type" {default = "n1-standard-1"}
 variable "edge_count" {default = 2}
 variable "edge_volume_size" {default = "10"} # size is in gigabytes
 variable "edge_data_volume_size" {default = "20"} # size is in gigabytes
-variable "long_name" {default = "microservices-infastructure"}
 variable "network_ipv4" {default = "10.0.0.0/16"}
 variable "region" {default = "us-central1"}
-variable "short_name" {default = "mi"}
+variable "short_name" {default = "mantl"}
+variable "long_name" {default = "mantl"}
 variable "ssh_key" {default = "~/.ssh/id_rsa.pub"}
 variable "ssh_user" {default = "centos"}
-variable "kube_worker_count" {default = 0}
+variable "kubeworker_count" {default = 0}
 variable "worker_count" {default = 1}
 variable "worker_type" {default = "n1-highcpu-2"}
 variable "zone" {default = "us-central1-a"}
@@ -57,6 +57,10 @@ resource "google_compute_firewall" "mi-firewall-internal" {
   source_ranges = ["${google_compute_network.mi-network.ipv4_range}"]
 
   allow {
+    protocol = "4"
+  }
+
+  allow {
     protocol = "tcp"
     ports = ["1-65535"]
   }
@@ -86,13 +90,13 @@ resource "google_compute_disk" "mi-worker-lvm" {
   count = "${var.worker_count}"
 }
 
-resource "google_compute_disk" "mi-kube-worker-lvm" {
-  name = "${var.short_name}-kube-worker-lvm-${format("%02d", count.index+1)}"
+resource "google_compute_disk" "mi-kubeworker-lvm" {
+  name = "${var.short_name}-kubeworker-lvm-${format("%02d", count.index+1)}"
   type = "pd-ssd"
   zone = "${var.zone}"
   size = "${var.worker_data_volume_size}"
 
-  count = "${var.kube_worker_count}"
+  count = "${var.kubeworker_count}"
 }
 
 resource "google_compute_disk" "mi-edge-lvm" {
@@ -198,8 +202,10 @@ resource "google_compute_instance" "mi-worker-nodes" {
   }
 }
 
-resource "google_compute_instance" "mi-kube-worker-nodes" {
-  name = "${var.short_name}-kube-worker-${format("%03d", count.index+1)}"
+
+resource "google_compute_instance" "mi-kubeworker-nodes" {
+  name = "${var.short_name}-kubeworker-${format("%03d", count.index+1)}"
+
   description = "${var.long_name} kube worker node #${format("%03d", count.index+1)}"
   machine_type = "${var.worker_type}"
   zone = "${var.zone}"
@@ -213,7 +219,7 @@ resource "google_compute_instance" "mi-kube-worker-nodes" {
   }
 
   disk {
-    disk = "${element(google_compute_disk.mi-kube-worker-lvm.*.name, count.index)}"
+    disk = "${element(google_compute_disk.mi-kubeworker-lvm.*.name, count.index)}"
     auto_delete = false
 
     # make disk available as "/dev/disk/by-id/google-lvm"
@@ -233,7 +239,7 @@ resource "google_compute_instance" "mi-kube-worker-nodes" {
     ssh_user = "${var.ssh_user}"
   }
 
-  count = "${var.kube_worker_count}"
+  count = "${var.kubeworker_count}"
 
   provisioner "remote-exec" {
     script = "./terraform/gce/disk.sh"
@@ -293,17 +299,17 @@ resource "google_compute_instance" "mi-edge-nodes" {
 }
 
 output "control_ips" {
-  value = "${join(\",\", google_compute_instance.mi-control-nodes.*.network_interface.0.access_config.0.nat_ip)}"
+  value = "${join(",", google_compute_instance.mi-control-nodes.*.network_interface.0.access_config.0.nat_ip)}"
 }
 
 output "worker_ips" {
-  value = "${join(\",\", google_compute_instance.mi-worker-nodes.*.network_interface.0.access_config.0.nat_ip)}"
+  value = "${join(",", google_compute_instance.mi-worker-nodes.*.network_interface.0.access_config.0.nat_ip)}"
 }
 
-output "kube_worker_ips" {
-  value = "${join(\",\", google_compute_instance.mi-kube-worker-nodes.*.network_interface.0.access_config.0.nat_ip)}"
+output "kubeworker_ips" {
+  value = "${join(",", google_compute_instance.mi-kubeworker-nodes.*.network_interface.0.access_config.0.nat_ip)}"
 }
 
 output "edge_ips" {
-  value = "${join(\",\", google_compute_instance.mi-edge-nodes.*.network_interface.0.access_config.0.nat_ip)}"
+  value = "${join(",", google_compute_instance.mi-edge-nodes.*.network_interface.0.access_config.0.nat_ip)}"
 }

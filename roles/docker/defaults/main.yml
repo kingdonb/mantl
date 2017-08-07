@@ -1,6 +1,6 @@
 # Where do we get docker packages from?
 # values are redhat or docker
-docker_package_source: docker
+docker_package_source: redhat
 
 docker_package: '{% if docker_package_source == "docker" %}docker-engine{% else %}docker{% endif %}'
 

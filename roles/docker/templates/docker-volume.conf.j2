@@ -23,3 +23,8 @@ size = {{ docker_lvm_data_volume_size }}
 config = /etc/sysconfig/mantl-storage
 
 {% endif %}
+{%if docker_storage_driver == "overlay" %}
+[write:config]
+file = /etc/sysconfig/docker-storage-setup
+content = DOCKER_STORAGE_OPTIONS=" -s overlay"
+{% endif %}

@@ -9,10 +9,10 @@ minion_group_name: role=kubeworker
 # Which type of packages should be used for deployment: stable, testing
 package_channel: stable
 
-kubernetes_package: kubernetes-1.3.3_consul
-kube_hyperkube_image: ciscocloud/hyperkube-amd64
+kubernetes_package: kubernetes-1.5.2-0.7.git269f928.el7
+kube_hyperkube_image: quay.io/coreos/hyperkube
 # Kubernetes hyperkube image tag to use
-kube_hyperkube_image_tag: v1.3.3-consul
+kube_hyperkube_image_tag: v1.5.2_coreos.2
 
 kube2consul_image: ciscocloud/kube2consul-amd64
 kube2consul_image_tag: v1.3.0-alpha.1.1977-a1e79e91b9fb6a

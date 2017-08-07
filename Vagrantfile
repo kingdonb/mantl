@@ -69,6 +69,7 @@ Vagrant.configure(2) do |config|
   config.vm.provider "virtualbox"
   config.vm.provider "vmware_fusion"
   config.vm.box = "CiscoCloud/mantl"
+  config.vm.box_version = "= 0"
 
   # Disable shared folder(s) for non-provisioning machines
   config.vm.synced_folder ".", "/vagrant", disabled: true

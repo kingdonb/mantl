@@ -109,16 +109,6 @@
                 "keep_input_artifact": false
             },
             {
-                "type": "atlas",
-                "token": "{{user `atlas_token`}}",
-                "artifact": "{{user `atlas_username`}}/{{user `atlas_name`}}",
-                "artifact_type": "vagrant.box",
-                "metadata": {
-                    "created_at": "{{timestamp}}",
-                    "provider": "virtualbox"
-                }
-            },
-            {
                 "type": "shell-local",
                 "inline": [
                     "mv builds/VirtualBox-mantl.box builds/mantl-bootstrap-$(git describe --tags --always --dirty).box"
